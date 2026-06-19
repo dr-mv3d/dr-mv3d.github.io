@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DR-MV3D: Dense Reward for Multi-View 3D Reasoning</title>
+  <meta name="description" content="DR-MV3D: Dense Reward for Multi-View 3D Reasoning with Global Maps and Local Views. A map-grounded framework that supervises the reasoning process with dense, verifiable rewards.">
+  <meta name="keywords" content="DR-MV3D, Multi-view VQA, 3D Reasoning, Dense Reward, GRPO, Cognitive Map, ECCV 2026">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="DR-MV3D: Dense Reward for Multi-View 3D Reasoning">
+  <meta property="og:description" content="Map-grounded dense rewards for multi-view 3D reasoning: a global consistency reward and a local trajectory reward, optimized with GRPO.">
+  <meta property="og:image" content="static/images/teaser_paper.png">
+  <meta property="og:type" content="website">
+
+  <!-- Fonts: Pretendard (vendored, offline-safe) -->
+  <link rel="preload" href="static/fonts/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- Vendored CSS -->
+  <link rel="stylesheet" href="static/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="static/css/method-widget.css">
+  <link rel="stylesheet" href="static/css/qualitative.css">
+  <link rel="stylesheet" href="static/css/teaser-widget.css">
+  <!-- Icon fonts (CDN) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <!-- Custom -->
+  <link rel="stylesheet" href="static/css/index.css">
+</head>
+<body>
+
+<!-- ============ HERO ============ -->
+<section class="hero is-light">
+  <div class="hero-body">
+    <div class="container is-max-desktop has-text-centered">
+      <p class="venue-kicker">ECCV 2026</p>
+      <h1 class="title is-2 publication-title">
+        Dense Reward for Multi-View 3D Reasoning<br>
+        <span class="has-text-grey-dark">with Global Maps and Local Views</span>
+      </h1>
+
+      <div class="is-size-4 has-text-weight-bold mb-4" style="color:#2b3a67;">DR-MV3D</div>
+
+      <!-- Authors -->
+      <div class="author-block mb-2">
+        <span><a href="#">Jiho Choi</a><sup>1&#42;</sup></span>,
+        <span><a href="#">Seonho Lee</a><sup>2&#42;</sup></span>,
+        <span><a href="#">Seojeong Park</a><sup>1</sup></span>,
+        <span><a href="#">Hyunjung Shim</a><sup>1&#9993;</sup></span>
+      </div>
+      <div class="affiliation mb-1">
+        <sup>1</sup> Graduate School of AI, KAIST &nbsp;&nbsp; <sup>2</sup> KRAFTON
+      </div>
+      <div class="eq-note mb-5">
+        <sup>&#42;</sup> Equal contribution &nbsp;&middot;&nbsp; <sup>&#9993;</sup> Corresponding author
+      </div>
+
+      <!-- Buttons -->
+      <div class="publication-links buttons is-centered">
+        <a href="static/pdfs/paper.pdf" class="button is-dark is-rounded" target="_blank" rel="noopener">
+          <span class="icon"><i class="fas fa-file-pdf"></i></span><span>Paper (PDF)</span>
+        </a>
+        <!-- arXiv / Code are not public yet: shown as upcoming, non-clickable -->
+        <span class="button is-rounded is-soon" aria-disabled="true" title="To be released">
+          <span class="icon"><i class="ai ai-arxiv"></i></span><span>arXiv <span class="soon-tag">coming soon</span></span>
+        </span>
+        <span class="button is-rounded is-soon" aria-disabled="true" title="To be released">
+          <span class="icon"><i class="fab fa-github"></i></span><span>Code <span class="soon-tag">coming soon</span></span>
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TL;DR ============ -->
+<section class="section" style="padding-top:2rem;">
+  <div class="container is-max-desktop">
+    <div class="tldr-card">
+      <h3 class="is-size-4 has-text-weight-bold mb-3" style="color:#2b3a67;">TL;DR</h3>
+      <ul>
+        <li><b>Problem.</b> Trained with sparse, answer-level supervision, multi-view 3D VQA models often yield
+          inconsistent cross-view reasoning and brittle view selection.</li>
+        <li><b>DR-MV3D.</b> A map-grounded framework that supervises the reasoning process with dense, verifiable
+          rewards, decomposing MV3D-VQA into three stages:
+          <ul>
+            <li>allocentric global-map construction</li>
+            <li>question-conditioned view-trajectory planning</li>
+            <li>egocentric grounding for answer prediction</li>
+          </ul>
+        </li>
+        <li><b>Two dense rewards, optimized with GRPO:</b>
+          <ul>
+            <li><b>Global consistency reward</b> &ndash; aligns the predicted map with geometry-consistent pseudo
+              targets from frozen VFMs (VGGT+SAM3), needing no manual map annotations.</li>
+            <li><b>Local trajectory reward</b> &ndash; supervises ordered viewpoint selection.</li>
+          </ul>
+        </li>
+        <li><b>Results.</b> A 3B model reaches 66.5% on MindCube-Tiny (+28.7%p), with further gains on VSI-Bench
+          and BLINK&nbsp;(MV).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TEASER ============ -->
+<section class="section" style="padding-top:1.4rem;">
+  <div class="container is-max-widescreen">
+    <p class="section-kicker">The idea in one figure</p>
+    <h2 class="title is-3 section-title has-text-centered">Sparse Rewards Guess. Dense Rewards Check.</h2>
+
+    <div class="mw tw" id="teaser-widget" data-steps="5">
+      <!-- shared input -->
+      <div class="tw-input" data-step="1">
+        <img class="tw-robot" src="static/images/robot_think.png" alt="agent">
+        <div class="mw-node mw-input has-fig">
+          <div class="mw-node-title">Multi-view input + question</div>
+          <div class="mw-views tw-views">
+            <div class="tw-v"><img src="static/images/teaser3d/view1.jpg" alt="image 1"><span>Image 1</span></div>
+            <div class="tw-v"><img src="static/images/teaser3d/view2.jpg" alt="image 2"><span>Image 2</span></div>
+            <div class="tw-v"><img src="static/images/teaser3d/view3.jpg" alt="image 3"><span>Image 3</span></div>
+            <div class="tw-v sel"><img src="static/images/teaser3d/view4.jpg" alt="image 4"><span>Image 4</span></div>
+          </div>
+          <div class="mw-q"><b>Question:</b> If I am standing at the same spot and facing the same direction as shown in
+            image&nbsp;4, then I turn left and move forward, will I get closer to the cabinet and potted plant?<br>
+            <b>Choices:</b> A. No &middot; B. Yes (GT)</div>
+        </div>
+      </div>
+
+      <div class="tw-split" data-step="2">two ways to supervise the answer</div>
+
+      <div class="tw-paths">
+        <!-- SPARSE -->
+        <div class="tw-path sparse" data-step="2">
+          <div class="tw-path-head bad">
+            <img class="tw-robot-sm" src="static/images/robot_think.png" alt="">
+            <span>Existing MLLM<br><span class="sub">sparse reward (answer only)</span></span>
+          </div>
+          <div class="tw-maplabel bad" data-step="3">The cognitive map the MLLM drew on its own</div>
+          <div class="tw-cogwrap" data-step="3"><img class="tw-3dmap" src="static/images/teaser3d/map_mllm.png" alt="MLLM's inconsistent cognitive map"></div>
+          <div class="tw-bevwrap" data-step="3">
+            <div class="tw-bevhd">the same map as a top-down grid with ego directions</div>
+            <div class="tw-bevgrid" id="tgrid-mllm"></div>
+          </div>
+          <div class="tw-mapnote bad" data-step="3">The objects land in the wrong cells (the black sofa and the cabinet
+            are swapped front-to-back). Nothing checks this geometry, so the inconsistent map is never corrected.</div>
+          <div class="tw-reason bad" data-step="3">
+            <span class="think">&hellip;</span> In image 4, I can see yellow bottle in front of the light-colored sofa
+            &hellip; Through analyzing these perspective changes, &hellip; if I move forward, I will be farther to the
+            cabinet and potted plant.
+          </div>
+          <div class="tw-rewards" data-step="3"><span class="mw-reward reward-answer">Answer Reward only</span></div>
+          <div class="tw-answer bad" data-step="3">&#10007; &ldquo;A. No&rdquo;</div>
+        </div>
+
+        <!-- DENSE -->
+        <div class="tw-path dense" data-step="2">
+          <div class="tw-path-head good">
+            <img class="tw-robot-sm" src="static/images/robot_point.png" alt="">
+            <span>DR-MV3D<br><span class="sub">dense, verifiable rewards</span></span>
+          </div>
+          <div class="tw-cogpair" data-step="4">
+            <div class="tw-cogitem">
+              <div class="tw-maplabel good">DR-MV3D's predicted map</div>
+              <div class="tw-cogwrap"><img class="tw-3dmap" src="static/images/teaser3d/map_pred.png" alt="DR-MV3D predicted cognitive map"></div>
+            </div>
+            <div class="tw-align">
+              <span class="tw-approx">&approx;</span>
+              <span class="tw-aligntxt">Global<br>Reward</span>
+            </div>
+            <div class="tw-cogitem vfm">
+              <div class="tw-maplabel vfm">VFM target <span class="sub">VGGT+SAM3</span></div>
+              <div class="tw-cogwrap"><img class="tw-3dmap" src="static/images/teaser3d/map_gt.png" alt="VFM target cognitive map"></div>
+            </div>
+          </div>
+          <div class="tw-bevwrap" data-step="4">
+            <div class="tw-bevhd">cognitive map (allocentric), as a top-down grid</div>
+            <div class="tw-bevgrid" id="tgrid-ok"></div>
+          </div>
+          <div class="tw-mapnote good" data-step="4">The <b>Global Reward</b> pulls the model's predicted map toward the
+            geometry-consistent VFM target, so the two match and the objects are placed correctly.</div>
+          <div class="tw-rewards">
+            <span class="mw-reward reward-global" data-step="4">Global Reward &middot; accurate cognitive map</span>
+          </div>
+          <div class="tw-egowrap" data-step="5">
+            <div class="tw-egohd">ego-centric map (the queried view's frame)</div>
+            <div class="tw-egostage">
+              <img class="tw-egomap" src="static/images/teaser3d/ego_map.png" alt="egocentric map with the agent at the queried viewpoint">
+              <span class="ego-tag ego-left">&#8630; Left</span>
+              <span class="ego-tag ego-obj">cabinet &amp; potted plant</span>
+            </div>
+            <div class="tw-egonote">Rotated into Image 4's frame after turning left: &ldquo;cabinet and potted plant&rdquo;
+              is now to the <b>left</b>, so it can be checked in Image 3.</div>
+          </div>
+          <div class="tw-rewards">
+            <span class="mw-reward reward-local" data-step="5">Local Trajectory Reward &middot; proper reasoning trajectory</span>
+          </div>
+          <div class="tw-reason good" data-step="5">
+            The question uses <u>Image 4</u>, so we should consider the viewpoint at <u>Image 4</u> &hellip;
+            &ldquo;cabinet and potted plant&rdquo; has <b>ego direction as &ldquo;left&rdquo;</b>, so it can be checked
+            in <u>Image 3</u> &hellip;
+          </div>
+          <div class="tw-answer good" data-step="5">&#10003; &ldquo;B. Yes&rdquo;</div>
+        </div>
+      </div>
+
+      <div class="mw-caption"><span class="mw-step-no">1 / 5</span><span class="mw-step-text"></span></div>
+      <div class="mw-controls">
+        <button class="mw-btn" data-act="prev" aria-label="Previous step">&lsaquo; Prev</button>
+        <button class="mw-btn mw-play" data-act="play">&#9656; Play</button>
+        <button class="mw-btn" data-act="next" aria-label="Next step">Next &rsaquo;</button>
+        <div class="mw-dots" role="tablist" aria-label="Steps"></div>
+      </div>
+    </div>
+
+    <details class="mw-details">
+      <summary>Show the full teaser figure from the paper</summary>
+      <figure class="figure-wrap mt-4">
+        <img src="static/images/teaser_paper.png" alt="DR-MV3D overview teaser (Figure 1)" class="figure-img">
+      </figure>
+      <p class="caption has-text-left">
+        <b>Figure 1. Overview of DR-MV3D.</b> Sparse, answer-level supervision (left) builds inconsistent cognitive
+        maps and misreads egocentric directions, so the model lands on a wrong answer even when the reasoning looks
+        plausible. DR-MV3D (right) supervises the process with dense, verifiable rewards: a global reward aligns the
+        predicted allocentric map with a geometry-consistent target from a frozen VFM, and a local trajectory reward
+        guides ordered viewpoint selection.
+      </p>
+    </details>
+  </div>
+</section>
+
+<!-- ============ ABSTRACT ============ -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 section-title has-text-centered">Abstract</h2>
+    <div class="content is-medium has-text-justified">
+      <p>
+        Multi-view 3D Visual Question Answering (MV3D-VQA) asks a model to combine partial observations into a
+        coherent 3D scene and to pick informative viewpoints for multi-step spatial reasoning. Current multimodal
+        LLMs are usually trained with sparse, answer-level supervision. This often produces inconsistent cross-view
+        reasoning and brittle view selection. We present <b>DR-MV3D</b>, a map-grounded framework that supplies
+        dense, verifiable rewards to supervise the reasoning process. The approach splits MV3D-VQA into three steps:
+        allocentric global map construction, question-conditioned view-trajectory planning, and egocentric grounding
+        for answer prediction. To make the intermediate steps learnable without manual annotations, we add two
+        rewards. A <b>global consistency reward</b> aligns the predicted map with geometry-consistent pseudo targets
+        from frozen 3D vision foundation models (VGGT and SAM3). A <b>local trajectory reward</b> supervises ordered
+        viewpoint selection. We optimize the full pipeline with trajectory-level policy optimization (GRPO).
+        On MindCube, VSI-Bench, and BLINK (MV), DR-MV3D consistently improves over strong multi-image baselines.
+        Process-level dense supervision is a more effective signal for multi-view 3D reasoning than answer-level
+        optimization alone.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ KEY NUMBERS ============ -->
+<section class="section" style="padding-top:0;">
+  <div class="container is-max-desktop">
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="num">66.5<span style="font-size:1.2rem;">%</span></div>
+        <div class="lbl">MindCube-Tiny<br><span class="sub">+28.7%p over baseline</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="num">37.1</div>
+        <div class="lbl">VSI-Bench (Avg)<br><span class="sub">+6.7 over baseline</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="num">56.4</div>
+        <div class="lbl">BLINK (MV)<br><span class="sub">+14.3 over baseline</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MOTIVATION ============ -->
+<section class="section has-background-white-ter">
+  <div class="container is-max-desktop">
+    <p class="section-kicker">Motivation</p>
+    <h2 class="title is-3 section-title has-text-centered">More Views Are Not Enough</h2>
+    <p class="lead-text">
+      The hard part of MV3D-VQA is not getting more images. It is keeping a single, consistent scene
+      representation that supports spatial reasoning. Three problems stand in the way.
+    </p>
+    <div class="columns mt-4">
+      <div class="column">
+        <div class="challenge-card">
+          <span class="chip">Problem 1</span>
+          <h4>Allocentric and egocentric do not match</h4>
+          <p>Most methods reason in a world-centered map. Many queries are egocentric, asking about
+            viewpoint-dependent relations or hypothetical moves. The two frames drift apart.</p>
+        </div>
+      </div>
+      <div class="column">
+        <div class="challenge-card">
+          <span class="chip">Problem 2</span>
+          <h4>Maps from MLLMs are not geometric</h4>
+          <p>MLLMs rarely produce geometrically consistent 3D structure. A frozen 3D VFM (VGGT+SAM3) gives maps
+            that sit closer to the ground truth, so it can act as a reliable structural prior.</p>
+        </div>
+      </div>
+      <div class="column">
+        <div class="challenge-card">
+          <span class="chip">Problem 3</span>
+          <h4>Answer-only rewards are too sparse</h4>
+          <p>A single reward on the final answer says little about a long chain of spatial steps. The reasoning
+            trajectory needs feedback at each step.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="columns is-centered mt-5">
+      <div class="column is-11">
+        <figure class="figure-wrap">
+          <img src="static/images/fig2_cogmap.png" alt="Cognitive map and metric comparison" class="figure-img">
+        </figure>
+        <p class="caption has-text-left">
+          <b>Figure 2. Cognitive maps from a VFM are closer to ground truth.</b> Across directional (<i>Dir.</i>),
+          facing (<i>Face.</i>), and overall scores, a VFM-derived map (VGGT+SAM3) matches the ground-truth map
+          better than an MLLM-generated one (Qwen2.5-3B).
+        </p>
+        <p class="callout"><b>Takeaway:</b> when ground-truth maps are missing, a frozen VFM supplies a reliable
+          pseudo-structural target to learn from.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ METHOD ============ -->
+<section class="section">
+  <div class="container is-max-widescreen">
+    <p class="section-kicker">Method</p>
+    <h2 class="title is-3 section-title has-text-centered">Build a Map, Plan the Views, Ground the Answer</h2>
+    <p class="lead-text mb-5">Step through the pipeline below. Each stage fades in as the reasoning unfolds, and
+      the reward that supervises it lights up.</p>
+
+    <!-- ===== Interactive walkthrough widget ===== -->
+    <div class="mw" id="method-widget" data-steps="6">
+      <div class="mw-stage">
+        <div class="mw-flow">
+
+          <!-- INPUT (step 1) -->
+          <div class="mw-col">
+            <div class="mw-node mw-input has-fig" data-step="1">
+              <div class="mw-node-title">Multi-view input + question</div>
+              <div class="mw-views">
+                <img src="static/images/qual/a1.jpg" alt="view 1">
+                <img src="static/images/qual/a2.jpg" alt="view 2">
+                <img src="static/images/qual/a3.jpg" alt="view 3">
+                <img src="static/images/qual/a4.jpg" alt="view 4">
+              </div>
+              <div class="mw-q"><b>Question:</b> If I am standing at the same spot and facing the same direction as
+                shown in Image&nbsp;1, what is behind me?<br>
+                <b>Choices:</b> A. Window (GT) &middot; B. Lots of toys &middot; C. Wall &middot; D. Printed glass door</div>
+            </div>
+          </div>
+
+          <div class="mw-arrow" data-step="2">&#9656;</div>
+
+          <!-- GLOBAL MAP column -->
+          <div class="mw-col mw-col-wide">
+            <div class="mw-node mw-vfm has-fig" data-step="3">
+              <div class="mw-node-title">Frozen 3D VFM <span class="mw-sub">VGGT + SAM3</span></div>
+              <img class="mw-fig" src="static/images/qual/scene_among.png" alt="VFM 3D reconstruction">
+            </div>
+            <div class="mw-down" data-step="3"></div>
+            <div class="mw-node mw-global" data-step="2">
+              <div class="mw-node-title">Global allocentric map</div>
+              <div class="mw-cog" id="cog-method"></div>
+              <div class="mw-node-sub">objects on a top-down grid; the 4 views point at the queried object</div>
+            </div>
+            <div class="mw-reward reward-global" data-step="3">Global Reward &middot; align map to VFM</div>
+          </div>
+
+          <div class="mw-arrow" data-step="4">&#9656;</div>
+
+          <!-- VIEW PLANNING column -->
+          <div class="mw-col">
+            <div class="mw-node mw-plan" data-step="4">
+              <div class="mw-node-title">View-trajectory planning</div>
+              <div class="mw-vstrip">
+                <div class="mw-vt sel"><img src="static/images/qual/a1.jpg" alt=""><span class="vn">1</span><span class="tick">&#10003;</span></div>
+                <div class="mw-vt skip"><img src="static/images/qual/a2.jpg" alt=""><span class="vn">2</span></div>
+                <div class="mw-vt skip"><img src="static/images/qual/a3.jpg" alt=""><span class="vn">3</span></div>
+                <div class="mw-vt skip"><img src="static/images/qual/a4.jpg" alt=""><span class="vn">4</span></div>
+              </div>
+              <div class="mw-vt-sel-label">Image&nbsp;1 selected &middot; reference <span class="fml">V<sup>*</sup> = (Image&nbsp;1)</span></div>
+              <div class="mw-node-sub">&ldquo;Selecting a view: The question uses Image 1, so we should consider the
+                viewpoint at Image 1.&rdquo;</div>
+            </div>
+            <div class="mw-reward reward-local" data-step="4">Local Trajectory Reward</div>
+          </div>
+
+          <div class="mw-arrow" data-step="5">&#9656;</div>
+
+          <!-- EGO + ANSWER column -->
+          <div class="mw-col">
+            <div class="mw-node mw-ego has-fig" data-step="5">
+              <div class="mw-node-title">Egocentric grounding</div>
+              <div class="mw-egoline"><img class="mw-egoimg" src="static/images/qual/a3.jpg" alt="Image 3 where Window is visible"><span class="mw-egotag">Image&nbsp;3</span></div>
+              <div class="mw-egomap" id="cog-method-ego"></div>
+              <div class="mw-node-sub">&ldquo;In the EgoMap, &lsquo;Window&rsquo; has
+                <code>ego_direction</code>=<code>&lsquo;back&rsquo;</code>, so it matches &lsquo;behind&rsquo;.
+                Confirming in Image 3: &lsquo;Window&rsquo; can be checked in Image 3.&rdquo;</div>
+              <div class="mw-ans">&#10003; Therefore, the answer is &ldquo;A. Window&rdquo;</div>
+            </div>
+            <div class="mw-reward reward-answer" data-step="5">Answer + Format Reward</div>
+          </div>
+        </div>
+
+        <div class="mw-grpo" data-step="6">
+          GRPO
+          <small>trajectory-level optimization with all four rewards</small>
+        </div>
+      </div>
+
+      <div class="mw-caption"><span class="mw-step-no">1 / 6</span><span class="mw-step-text"></span></div>
+
+      <div class="mw-controls">
+        <button class="mw-btn" data-act="prev" aria-label="Previous step">&lsaquo; Prev</button>
+        <button class="mw-btn mw-play" data-act="play">&#9656; Play</button>
+        <button class="mw-btn" data-act="next" aria-label="Next step">Next &rsaquo;</button>
+        <div class="mw-dots" role="tablist" aria-label="Steps"></div>
+      </div>
+      <p class="mw-hint">Plays as you scroll in. Use Play / Prev / Next or the dots to step through.</p>
+    </div>
+
+    <!-- Full paper figure, available as reference -->
+    <details class="mw-details">
+      <summary>Show the full diagram from the paper</summary>
+      <figure class="figure-wrap mt-4">
+        <img src="static/images/fig3_framework.png" alt="Overall framework with VFM-guided dense rewards" class="figure-img">
+      </figure>
+      <p class="caption has-text-left">
+        <b>Figure 3. The DR-MV3D framework.</b> From multi-view observations and a question, the MLLM builds a
+        global allocentric cognitive map, plans a question-conditioned view trajectory, and grounds the selected
+        views into egocentric maps to predict the answer. GRPO supervises every stage with multi-level verifiable
+        rewards.
+      </p>
+    </details>
+
+    <div class="columns is-centered mt-5">
+      <div class="column is-10">
+        <p class="content is-medium">
+          Formally, given multi-view images <span class="fml">I = {I<sub>1</sub>, &hellip;, I<sub>N</sub>}</span> and a
+          spatial question <span class="fml">q</span>, the policy <span class="fml">&pi;<sub>&theta;</sub></span>
+          produces a trajectory that first builds a coarse allocentric map, then selects views, then grounds them
+          before answering. Each stage below carries its own verifiable reward.
+        </p>
+
+        <!-- Stage 1 -->
+        <div class="stage-block">
+          <div class="stage-tag">Stage 1</div>
+          <h4 class="title is-5">Global allocentric cognitive map</h4>
+          <p>The model aggregates the views into one world-centered map
+            <span class="fml">C<sup>allo</sup> &sim; &pi;<sub>&theta;</sub>(&middot; | I)</span> that stays fixed
+            as the camera moves. The trouble is that language-driven maps are often not geometrically consistent.
+            So we read a pseudo-target off a frozen 3D vision foundation model,
+            <span class="fml">C<sup>*</sup> = SAM3(VGGT(I))</span>, and align to it.</p>
+          <div class="reward-line">
+            <span class="reward-pill reward-global">Global Reward</span>
+            <span class="fml big">R<sub>global</sub> = sim(C<sup>allo</sup>, C<sup>*</sup>)</span>
+          </div>
+          <p class="callout"><b>Why this matters:</b> the supervision comes from geometry models, not from
+            hand-labeled maps. This is what makes process-level training scale.</p>
+        </div>
+
+        <!-- Stage 2 -->
+        <div class="stage-block">
+          <div class="stage-tag">Stage 2</div>
+          <h4 class="title is-5">Question-conditioned view-trajectory planning</h4>
+          <p>Conditioned on the map and the question, the policy autoregressively selects an ordered trajectory
+            <span class="fml">V = (v<sub>1</sub>, &hellip;, v<sub>T</sub>)</span>, keeping informative viewpoints and
+            dropping visual noise. A reference order <span class="fml">V<sup>*</sup></span> is derived
+            deterministically from benchmark metadata (the views that best see the queried objects).</p>
+          <div class="reward-line">
+            <span class="reward-pill reward-local">Local Trajectory Reward</span>
+            <span class="fml big">R<sub>local</sub> = (1/T) &sum;<sub>t</sub> &#x1D7D9;[v<sub>t</sub> = v<sub>t</sub><sup>*</sup>]</span>
+          </div>
+          <div class="example-box">
+            <div class="ex-head">Worked example &middot; the &ldquo;Among&rdquo; query</div>
+            <p><b>Question:</b> If I am standing at the same spot and facing the same direction as shown in
+              Image&nbsp;1, what is behind me? &nbsp;<span class="ex-choices">(A. Window (GT) &middot; B. Lots of
+              toys &middot; C. Wall &middot; D. Printed glass door)</span></p>
+            <p>The query is anchored to Image&nbsp;1, so the reference trajectory is
+              <span class="fml">V<sup>*</sup> = (Image&nbsp;1)</span>.</p>
+
+            <div class="ex-row bad">
+              <div class="ex-label">Baseline &middot; sparse</div>
+              <div class="ex-text">
+                <span class="think">&lt;think&gt;</span> &hellip; The opposite view of the first view is the third view.
+                As &ldquo;printed glass door&rdquo; is observed behind &ldquo;toy helicopter&rdquo; in the third view, it
+                means that in the first view, &ldquo;printed glass door&rdquo; is positioned behind me. &hellip; So the
+                answer is <span class="ans-bad">&ldquo;D. Printed glass door&rdquo;</span>.
+                <span class="think">&lt;/think&gt;</span>
+                <div class="ex-score">It reasons from Image&nbsp;3, not the queried view, so
+                  <span class="fml">v<sub>1</sub> &ne; v<sub>1</sub><sup>*</sup></span> and
+                  <span class="fml">R<sub>local</sub> = 0</span>.</div>
+              </div>
+            </div>
+
+            <div class="ex-row good">
+              <div class="ex-label">DR-MV3D &middot; dense</div>
+              <div class="ex-text">
+                <span class="think">&lt;think&gt;</span> <b>(1) Selecting a view</b>: The question uses <u>Image 1</u>,
+                so we should consider the viewpoint at <u>Image 1</u>. <b>(2) Egocentric layout</b>: The asked direction
+                is &ldquo;behind&rdquo;. In the EgoMap, &ldquo;Window&rdquo; has
+                <code>ego_direction</code>=<code>&ldquo;back&rdquo;</code>, so it matches &ldquo;behind&rdquo;.
+                <b>(3) Confirming in <u>Image 3</u></b>: &ldquo;Window&rdquo; can be checked in Image&nbsp;3. The
+                direction decision comes from the egomap <code>ego_direction</code> for the asked viewpoint.
+                <b>(4)</b> Therefore, the answer is <span class="ans-good">&ldquo;A. Window&rdquo;</span>.
+                <span class="think">&lt;/think&gt;</span>
+                <div class="ex-score">It plans <span class="fml">v<sub>1</sub> = Image&nbsp;1</span>, matching the
+                  reference, so <span class="fml">R<sub>local</sub> = 1</span>.</div>
+              </div>
+            </div>
+
+            <p class="ex-note">The local trajectory reward grades <i>which view the model reads, and in what order</i>.
+              Reading the queried view is exactly what lets the egocentric map resolve &ldquo;behind&rdquo; to
+              &ldquo;Window&rdquo; instead of &ldquo;printed glass door&rdquo;.</p>
+          </div>
+          <p class="callout"><b>Why this matters:</b> it scores the <i>order</i> of looking, not just the final
+            answer, so the model learns to gather the right evidence before committing.</p>
+        </div>
+
+        <!-- Stage 3 -->
+        <div class="stage-block">
+          <div class="stage-tag">Stage 3</div>
+          <h4 class="title is-5">Egocentric grounding and answer</h4>
+          <p>For each selected view the model converts global evidence into a viewpoint-aligned egocentric map
+            <span class="fml">C<sup>ego</sup><sub>t</sub> &sim; &pi;<sub>&theta;</sub>(&middot; | C<sup>allo</sup>, v<sub>t</sub>, I, q)</span>
+            through coordinate rotation, spatial filtering, and reference-frame alignment. MLLMs are pretrained mostly
+            on egocentric, view-aligned data, so translating the abstract 3D layout back into that native format is
+            where the answer becomes reliable. The final answer is read from the trajectory-conditioned egocentric
+            evidence.</p>
+        </div>
+
+        <!-- Objective -->
+        <h4 class="title is-5 mt-5">Putting it together with GRPO</h4>
+        <p class="content is-medium">
+          Answer-only rewards are too sparse, so we add the two process rewards and optimize the whole trajectory with
+          GRPO (no separate value model):
+        </p>
+        <div class="reward-line center">
+          <span class="fml big">R = R<sub>ans</sub> + R<sub>format</sub> + &lambda;<sub>g</sub> R<sub>global</sub> + &lambda;<sub>l</sub> R<sub>local</sub></span>
+        </div>
+        <p class="content is-medium">
+          Since <span class="fml">R<sub>global</sub></span> can use the VFM pseudo-target instead of an annotated map,
+          the method also runs annotation-free and still beats strong baselines.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RESULTS ============ -->
+<section class="section has-background-white-ter">
+  <div class="container is-max-desktop">
+    <p class="section-kicker">Results</p>
+    <h2 class="title is-3 section-title has-text-centered">Consistent Gains Over the Baseline, Across Benchmarks</h2>
+
+    <!-- Table 1: MindCube -->
+    <h4 class="title is-5">MindCube-Tiny</h4>
+    <div class="table-scroll">
+      <table class="results-table">
+        <thead>
+          <tr><th class="method" style="text-align:left;">Method</th><th>Params</th><th>Rotation</th><th>Among</th><th>Around</th><th>Overall</th></tr>
+        </thead>
+        <tbody>
+          <tr class="group-row"><td colspan="6">Proprietary models</td></tr>
+          <tr><td class="method">GPT-5</td><td>&ndash;</td><td>94.5</td><td>38.2</td><td>68.4</td><td>56.3</td></tr>
+          <tr><td class="method">Gemini-2.5-Pro</td><td>&ndash;</td><td>85.0</td><td>49.2</td><td>58.3</td><td>59.3</td></tr>
+          <tr class="group-row"><td colspan="6">Open-weight multi-image models</td></tr>
+          <tr><td class="method">Qwen2.5-VL-Instruct (baseline)</td><td>3B</td><td>34.0</td><td>36.0</td><td>45.2</td><td>37.8</td></tr>
+          <tr><td class="method">Spatial-MLLM</td><td>4B</td><td>32.5</td><td>47.5</td><td>35.0</td><td>42.8</td></tr>
+          <tr><td class="method">MindCube-CGMap-SFT</td><td>3B</td><td>34.5</td><td>54.2</td><td>70.8</td><td>54.4</td></tr>
+          <tr><td class="method">Think3D (Qwen3-VL-RL)</td><td>4B</td><td>41.7</td><td>35.0</td><td>39.2</td><td>41.7</td></tr>
+          <tr class="ours"><td class="method">DR-MV3D (SFT)</td><td>3B</td><td>42.0</td><td>66.3</td><td>69.2</td><td>62.4</td></tr>
+          <tr class="ours"><td class="method">DR-MV3D (SFT + GRPO)</td><td>3B</td><td>43.0</td><td class="best">71.3</td><td class="best">73.6</td><td class="best">66.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">Accuracy (%). Our 3B model posts the best overall score among open-weight baselines, a 28.7%p gain over the Qwen2.5-VL-3B baseline.</p>
+
+    <!-- Table 2: VSI-Bench -->
+    <h4 class="title is-5 mt-6">VSI-Bench</h4>
+    <div class="table-scroll">
+      <table class="results-table">
+        <thead>
+          <tr><th class="method" style="text-align:left;">Method</th><th>Route&nbsp;Plan</th><th>Rel.&nbsp;Dir.</th><th>Rel.&nbsp;Dist.</th><th>App.&nbsp;Order</th><th>Avg</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="method">LLaVA-OneVision-7B</td><td>29.4</td><td>35.2</td><td>42.5</td><td>24.4</td><td>32.9</td></tr>
+          <tr><td class="method">InternVL2-8B</td><td>28.9</td><td>33.4</td><td>38.0</td><td>46.4</td><td>36.7</td></tr>
+          <tr><td class="method">Qwen2.5-VL-3B-Instruct (baseline)</td><td>27.3</td><td>43.8</td><td>25.9</td><td>24.4</td><td>30.4</td></tr>
+          <tr class="ours"><td class="method">DR-MV3D (SFT)</td><td>30.9</td><td>43.9</td><td>35.1</td><td>26.9</td><td>34.2</td></tr>
+          <tr class="ours"><td class="method">DR-MV3D (SFT + GRPO)</td><td class="best">32.4</td><td class="best">46.6</td><td>37.8</td><td>31.4</td><td class="best">37.1</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">Accuracy (%). Dense-reward training carries over to sequential, navigation-style evaluation, raising the average by 6.7 over the 3B baseline.</p>
+
+    <!-- Table 3: BLINK -->
+    <h4 class="title is-5 mt-6">BLINK (Multi-View)</h4>
+    <div class="table-scroll">
+      <table class="results-table" style="max-width:520px;margin:0 auto;">
+        <thead>
+          <tr><th class="method" style="text-align:left;">Method</th><th>BLINK&nbsp;(MV)</th></tr>
+        </thead>
+        <tbody>
+          <tr class="group-row"><td colspan="2">Proprietary models</td></tr>
+          <tr><td class="method">Gemini-2.5-Pro</td><td>44.9</td></tr>
+          <tr><td class="method">Doubao-1.5</td><td>50.9</td></tr>
+          <tr class="group-row"><td colspan="2">Open-weight models</td></tr>
+          <tr><td class="method">Qwen2.5-VL-3B (baseline)</td><td>42.1</td></tr>
+          <tr><td class="method">Spatial-MLLM</td><td>56.0</td></tr>
+          <tr><td class="method">Think3D (Qwen3-VL-4B-T3RL)</td><td>53.4</td></tr>
+          <tr class="ours"><td class="method">DR-MV3D (SFT)</td><td>54.9</td></tr>
+          <tr class="ours"><td class="method">DR-MV3D (SFT + GRPO)</td><td class="best">56.4</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">Accuracy (%). Best result among open-weight models, ahead of the 3B baseline by 14.3.</p>
+
+    <!-- Ablations -->
+    <div class="columns mt-6">
+      <div class="column">
+        <h4 class="title is-6">Ablation: SFT components (Overall)</h4>
+        <div class="table-scroll">
+          <table class="results-table">
+            <thead><tr><th class="method" style="text-align:left;">Config</th><th>Allo.</th><th>Traj.</th><th>Ego.</th><th>Overall</th></tr></thead>
+            <tbody>
+              <tr><td class="method">Vanilla Qwen2.5-VL-3B</td><td>&#10007;</td><td>&#10007;</td><td>&#10007;</td><td>37.8</td></tr>
+              <tr><td class="method">+ Allocentric map</td><td>&#10003;</td><td>&#10007;</td><td>&#10007;</td><td>52.8</td></tr>
+              <tr><td class="method">+ Trajectory</td><td>&#10007;</td><td>&#10003;</td><td>&#10007;</td><td>58.2</td></tr>
+              <tr class="ours"><td class="method">Full SFT</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td class="best">62.4</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="column">
+        <h4 class="title is-6">Ablation: GRPO rewards (Overall)</h4>
+        <div class="table-scroll">
+          <table class="results-table">
+            <thead><tr><th class="method" style="text-align:left;">Rewards</th><th>Global</th><th>Local</th><th>Overall</th></tr></thead>
+            <tbody>
+              <tr><td class="method">Answer &amp; format only</td><td>&#10007;</td><td>&#10007;</td><td>63.8</td></tr>
+              <tr><td class="method">+ Global</td><td>&#10003;</td><td>&#10007;</td><td>64.9</td></tr>
+              <tr class="ours"><td class="method">+ Global + Local</td><td>&#10003;</td><td>&#10003;</td><td class="best">66.5</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <p class="callout mt-4"><b>Main message:</b> each piece helps. The global reward adds geometry, and the local
+      reward adds the right viewing order. Together they take GRPO from 63.8 to 66.5.</p>
+  </div>
+</section>
+
+<!-- ============ QUALITATIVE ============ -->
+<section class="section">
+  <div class="container is-max-widescreen">
+    <p class="section-kicker">Qualitative</p>
+    <h2 class="title is-3 section-title has-text-centered">Reading the Right View at the Right Step</h2>
+    <p class="lead-text mb-5">Each example shows the real multi-view input, the VFM scene, and the cognitive map
+      (rendered here as live SVG from the paper source). The baseline reasons itself into the wrong object; DR-MV3D
+      selects the right view and grounds the answer in its egocentric map.</p>
+
+    <!-- Example 1: Among -->
+    <div class="qual-card">
+      <div class="qual-head">among_group646_q0_2_1 <span class="tag">· MindCube · Among</span></div>
+      <div class="qual-body">
+        <div class="qual-top">
+          <div class="qual-col qual-views-col">
+            <div class="qual-views">
+              <div class="qual-view"><img src="static/images/qual/a1.jpg" alt="view 1"><span class="vn">1</span></div>
+              <div class="qual-view"><img src="static/images/qual/a2.jpg" alt="view 2"><span class="vn">2</span></div>
+              <div class="qual-view"><img src="static/images/qual/a3.jpg" alt="view 3"><span class="vn">3</span></div>
+              <div class="qual-view"><img src="static/images/qual/a4.jpg" alt="view 4"><span class="vn">4</span></div>
+            </div>
+            <div class="cap">(a) Multi-view images</div>
+          </div>
+          <div class="qual-col qual-scene">
+            <img src="static/images/qual/scene_among.png" alt="VFM scene reconstruction">
+            <div class="cap">(b) Scene from VFM</div>
+          </div>
+          <div class="qual-col">
+            <div class="qual-cogmap" id="cog-among"></div>
+            <div class="cap">(c) Cognitive map with ego-directions</div>
+          </div>
+        </div>
+
+        <div class="qa qa-q">
+          <b class="lead">Question:</b> If I am standing at the same spot and facing the same direction as shown in
+          Image&nbsp;1, what is behind me?
+          <div class="choices"><b>Choices:</b> <span class="gt">A. Window (GT)</span> &nbsp; B. Lots of toys &nbsp; C. Wall &nbsp; D. Printed glass door</div>
+        </div>
+        <div class="qa qa-bad">
+          <span class="who">MindCube-SFT:</span> <span class="think">&lt;think&gt;</span> &hellip; The opposite view of
+          the first view is the third view. As &ldquo;printed glass door&rdquo; is observed behind &ldquo;toy
+          helicopter&rdquo; in the third view, it means that in the first view, &ldquo;printed glass door&rdquo; is
+          positioned behind me. &hellip; So the answer is <span class="ans">&ldquo;D. Printed glass door&rdquo;</span>.
+          <span class="think">&lt;/think&gt;</span>
+        </div>
+        <div class="qa qa-good">
+          <span class="who">DR-MV3D (Ours):</span> <span class="think">&lt;think&gt;</span>
+          <b>(1) Selecting a view</b>: The question uses <u>Image 1</u>, so we should consider the viewpoint at
+          <u>Image 1</u>. <b>(2) Egocentric layout</b>: The asked direction is &ldquo;behind&rdquo;. In the EgoMap,
+          &ldquo;Window&rdquo; has <code>ego_direction</code>=<code>&ldquo;back&rdquo;</code>, so it matches
+          &ldquo;behind&rdquo;. <b>(3) Confirming in <u>Image 3</u></b>: &ldquo;Window&rdquo; can be checked in
+          Image&nbsp;3. The direction decision comes from the egomap <code>ego_direction</code> for the asked
+          viewpoint. <b>(4)</b> Therefore, the answer is <span class="ans">&ldquo;A. Window&rdquo;</span>.
+          <span class="think">&lt;/think&gt;</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Example 2: Rotation -->
+    <div class="qual-card">
+      <div class="qual-head">rotation_group005_q2_3 <span class="tag">· MindCube · Rotation</span></div>
+      <div class="qual-body">
+        <div class="qual-top">
+          <div class="qual-col qual-views-col">
+            <div class="qual-views three">
+              <div class="qual-view"><img src="static/images/qual/r1.jpg" alt="view 1"><span class="vn">1</span></div>
+              <div class="qual-view"><img src="static/images/qual/r2.jpg" alt="view 2"><span class="vn">2</span></div>
+              <div class="qual-view"><img src="static/images/qual/r3.jpg" alt="view 3"><span class="vn">3</span></div>
+            </div>
+            <div class="cap">(a) Multi-view images</div>
+          </div>
+          <div class="qual-col qual-scene">
+            <img src="static/images/qual/scene_rotation.png" alt="VFM scene reconstruction">
+            <div class="cap">(b) Scene from VFM</div>
+          </div>
+          <div class="qual-col">
+            <div class="qual-cogmap" id="cog-rotation"></div>
+            <div class="cap">(c) Cognitive map with ego-directions</div>
+          </div>
+        </div>
+
+        <div class="qa qa-q">
+          <b class="lead">Question:</b> If I am standing at the same spot and facing the same direction as shown in
+          image&nbsp;2, then I turn 90 degrees to the left, what is to my right?
+          <div class="choices"><b>Choices:</b> A. Study table and black chair &nbsp; B. Bed &nbsp; <span class="gt">C. Window (GT)</span></div>
+        </div>
+        <div class="qa qa-bad">
+          <span class="who">MindCube-SFT:</span> <span class="think">&lt;think&gt;</span> &hellip; From the perspective
+          of image 2: &lsquo;bed&rsquo; is in front, &lsquo;window&rsquo; is to the right, &lsquo;study table and black
+          chair&rsquo; is behind. After turning 90 degrees to the left: &lsquo;window&rsquo; is now to my right,
+          &lsquo;study table and black chair&rsquo; is now behind me. &hellip; So the answer is
+          <span class="ans">&ldquo;B. Bed&rdquo;</span>. <span class="think">&lt;/think&gt;</span>
+        </div>
+        <div class="qa qa-good">
+          <span class="who">DR-MV3D (Ours):</span> <span class="think">&lt;think&gt;</span>
+          <b>(1) Selecting a view</b>: After turning &ldquo;left&rdquo; from Image 2, it corresponds to the facing
+          direction of Image 1, so we should consider the viewpoint at <u>Image 1</u>. <b>(2) Egocentric layout</b>:
+          The asked direction is &ldquo;right&rdquo;. In the EgoMap, &ldquo;Window&rdquo; has
+          <code>ego_direction</code>=<code>&ldquo;right&rdquo;</code>, so it matches &ldquo;right&rdquo;.
+          <b>(3) Confirming in <u>Image 2</u></b>: &ldquo;Window&rdquo; can be checked in Image&nbsp;2.
+          <b>(4)</b> Therefore, the answer is <span class="ans">&ldquo;C. Window&rdquo;</span>.
+          <span class="think">&lt;/think&gt;</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BIBTEX ============ -->
+<section class="section has-background-white-ter">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 section-title has-text-centered">BibTeX</h2>
+    <div class="bibtex-box">
+<pre>@inproceedings{choi2026drmv3d,
+  title     = {Dense Reward for Multi-View 3D Reasoning with Global Maps and Local Views},
+  author    = {Choi, Jiho and Lee, Seonho and Park, Seojeong and Shim, Hyunjung},
+  booktitle = {European Conference on Computer Vision (ECCV)},
+  year      = {2026}
+}</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer has-text-centered">
+  <div class="container is-max-desktop">
+    <p class="is-size-7 has-text-grey">
+      This website is licensed under a
+      <a href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+      It borrows the layout of the
+      <a href="https://github.com/nerfies/nerfies.github.io" target="_blank" rel="noopener">Nerfies</a>
+      project page. Thanks to the authors for sharing it.
+    </p>
+  </div>
+</footer>
+
+<!-- Vendored JS -->
+<script src="static/js/bulma-carousel.min.js"></script>
+<script src="static/js/bulma-slider.min.js"></script>
+<script src="static/js/index.js"></script>
+<script src="static/js/method-anim.js"></script>
+<script src="static/js/cogmap.js"></script>
+<script src="static/js/qual-init.js"></script>
+<script src="static/js/teaser-anim.js"></script>
+</body>
+</html>

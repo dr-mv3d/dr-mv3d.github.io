@@ -1,0 +1,266 @@
+/* ===== DR-MV3D project page ===== */
+@font-face {
+  font-family: 'Pretendard Variable';
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  src: url('../fonts/PretendardVariable.woff2') format('woff2-variations');
+}
+
+html, body { overflow-x: hidden; }
+body {
+  font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
+    'Noto Sans KR', sans-serif;
+  color: #1d1d1f;
+}
+
+.hero.is-light { background: linear-gradient(180deg, #f7f9fc 0%, #ffffff 100%); }
+
+.hero-body .publication-title.title {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.18;
+  font-size: clamp(1.45rem, 5.2vw, 2.55rem);
+  overflow-wrap: break-word;
+}
+
+.venue-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #2b3a67;
+  margin-bottom: 0.9rem;
+}
+
+.section-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: #8a93a6;
+  text-align: center;
+  margin-bottom: 0.4rem;
+}
+
+.lead-text {
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+  color: #4a4a4a;
+  font-size: 1.08rem;
+  line-height: 1.6;
+}
+
+.callout {
+  background: #eef2fb;
+  border-radius: 10px;
+  padding: 0.9rem 1.2rem;
+  color: #33405e;
+  font-size: 1rem;
+  line-height: 1.55;
+  margin-top: 1rem;
+}
+.callout b { color: #2b3a67; }
+
+/* Method: stage blocks + inline formulas */
+.stage-block {
+  border-left: 4px solid #d7deea;
+  padding: 0.2rem 0 0.2rem 1.2rem;
+  margin: 1.6rem 0;
+}
+.stage-tag {
+  display: inline-block; background: #eef2fb; color: #2b3a67;
+  font-weight: 800; font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase;
+  border-radius: 6px; padding: 0.15em 0.6em; margin-bottom: 0.5rem;
+}
+.fml {
+  font-family: 'Cambria Math', Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  background: #f6f8fc;
+  border: 1px solid #e6ebf3;
+  border-radius: 5px;
+  padding: 0.05em 0.4em;
+  white-space: nowrap;
+  font-size: 0.96em;
+}
+.fml.big { font-size: 1.12rem; font-style: normal; padding: 0.3em 0.8em; }
+.fml sub, .fml sup { font-style: normal; }
+.reward-line { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; margin: 0.9rem 0; }
+.reward-line.center { justify-content: center; }
+
+/* Worked example box */
+.example-box {
+  background: #fbfcfe; border: 1px solid #e6ebf3; border-radius: 10px;
+  padding: 1rem 1.2rem; margin: 1rem 0;
+}
+.example-box .ex-head {
+  font-weight: 800; color: #2b3a67; font-size: 0.92rem; margin-bottom: 0.5rem;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.example-box p { margin: 0.4rem 0; line-height: 1.55; }
+.example-box ul { margin: 0.5rem 0 0.5rem 0; }
+.example-box li { margin-bottom: 0.5rem; line-height: 1.55; }
+.example-box .ex-note { color: #5a6478; font-size: 0.95rem; margin-top: 0.8rem; }
+.example-box code { background: #eef2f7; border-radius: 4px; padding: 0.05em 0.35em; font-size: 0.88em; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.example-box .ex-choices { color: #6a7388; font-size: 0.92em; }
+.ans-bad { color: #b23b30; font-weight: 800; }
+.ans-good { color: #157a45; font-weight: 800; }
+
+.ex-row { display: flex; gap: 0.8rem; margin: 0.8rem 0; align-items: flex-start; }
+.ex-label {
+  flex: none; width: 96px; font-weight: 800; font-size: 0.8rem; border-radius: 7px;
+  padding: 0.35em 0.5em; text-align: center; line-height: 1.3;
+}
+.ex-row.bad .ex-label { background: #fbe4e1; color: #b23b30; }
+.ex-row.good .ex-label { background: #e3f5ea; color: #157a45; }
+.ex-text { font-size: 0.9rem; line-height: 1.55; }
+.ex-text .think { display: inline; }
+.ex-score { margin-top: 0.4rem; color: #555; font-size: 0.88rem; }
+.example-box .think { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #97a0b2; font-size: 0.85em; }
+
+.author-block { font-size: 1.18rem; }
+.author-block a { color: #2b3a67; }
+.author-block sup { color: #888; font-size: 0.72em; }
+
+.affiliation { color: #4a4a4a; font-size: 1.02rem; }
+.eq-note { color: #888; font-size: 0.92rem; }
+
+/* Buttons */
+.publication-links .button {
+  border-radius: 999px;
+  font-weight: 600;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.publication-links .button:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.14); }
+
+/* Upcoming (not-yet-public) links: muted, non-interactive */
+.publication-links .button.is-soon {
+  background: #eef1f6;
+  color: #8a93a6;
+  border: 1px dashed #c3cbd9;
+  cursor: default;
+  pointer-events: none;
+}
+.publication-links .button.is-soon:hover { transform: none; box-shadow: none; }
+.publication-links .button.is-soon .soon-tag {
+  font-weight: 600; font-size: 0.78em; letter-spacing: 0.01em; opacity: 0.9; margin-left: 0.4em;
+}
+
+/* Section titles */
+.section-title {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 1.4rem !important;
+}
+.section { padding: 2.6rem 1.5rem; }
+
+/* TL;DR card */
+.tldr-card {
+  background: #f4f7fb;
+  border-left: 5px solid #2b3a67;
+  border-radius: 10px;
+  padding: 1.6rem 1.8rem;
+}
+.tldr-card > ul { margin: 0; list-style: none; }
+.tldr-card > ul > li {
+  position: relative; padding-left: 1.5rem; margin-bottom: 1rem; line-height: 1.55;
+}
+.tldr-card > ul > li:last-child { margin-bottom: 0; }
+.tldr-card > ul > li::before {
+  content: ''; position: absolute; left: 2px; top: 0.5em;
+  width: 9px; height: 9px; border-radius: 3px; background: #2b3a67;
+}
+.tldr-card > ul > li > b:first-child { color: #2b3a67; }
+.tldr-card ul ul {
+  list-style: disc; margin: 0.5rem 0 0.2rem 1.4rem;
+}
+.tldr-card ul ul li { margin-bottom: 0.3rem; line-height: 1.5; color: #3a4660; }
+.tldr-card ul ul li::marker { color: #9aa3b4; }
+
+/* Figures */
+img { max-width: 100%; height: auto; }
+.figure-img { border-radius: 8px; display: block; width: 100%; height: auto; }
+.figure-wrap { box-shadow: 0 2px 14px rgba(0,0,0,0.08); border-radius: 10px; overflow: hidden; background: #fff; }
+.caption { color: #5a5a5a; font-size: 0.95rem; margin-top: 0.9rem; line-height: 1.55; }
+.caption b { color: #2b3a67; }
+
+/* Stat cards */
+.stat-grid { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; }
+.stat-card {
+  flex: 1 1 200px;
+  max-width: 260px;
+  background: #fff;
+  border: 1px solid #e8ecf3;
+  border-radius: 14px;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.stat-card .num { font-size: 2.3rem; font-weight: 800; color: #2b3a67; line-height: 1; }
+.stat-card .lbl { margin-top: 0.5rem; color: #555; font-size: 0.93rem; line-height: 1.4; }
+.stat-card .sub { color: #16a34a; font-weight: 700; }
+
+/* Challenge cards */
+.challenge-card {
+  background: #fff; border: 1px solid #e8ecf3; border-radius: 14px;
+  padding: 1.5rem; height: 100%;
+}
+.challenge-card .chip {
+  display: inline-block; background: #eef2fb; color: #2b3a67;
+  border-radius: 8px; padding: 0.2em 0.7em; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.7rem;
+}
+.challenge-card h4 { font-weight: 700; margin-bottom: 0.5rem; }
+.challenge-card p { color: #555; line-height: 1.55; font-size: 0.97rem; }
+
+/* Method reward pills */
+.reward-pill {
+  display: inline-block; border-radius: 999px; padding: 0.25em 0.9em;
+  font-weight: 700; font-size: 0.9rem; margin: 0.2em 0.3em 0.2em 0; color: #fff;
+}
+.reward-global { background: #2563eb; }
+.reward-local  { background: #ea7a2e; }
+.reward-answer { background: #16a34a; }
+.reward-format { background: #6b7280; }
+
+/* Tables */
+.results-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.results-table th, .results-table td { padding: 0.5em 0.7em; text-align: center; border-bottom: 1px solid #eee; }
+.results-table th { background: #f4f7fb; color: #2b3a67; font-weight: 700; }
+.results-table td.method { text-align: left; white-space: nowrap; }
+.results-table tr.ours { background: #fff7ec; font-weight: 700; }
+.results-table tr.ours td { border-bottom: 1px solid #f0d9b8; }
+.results-table .best { color: #c2410c; font-weight: 800; }
+.results-table .group-row td { background: #fafbfd; color: #888; font-style: italic; text-align: left; font-size: 0.83rem; }
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table-note { color: #888; font-size: 0.85rem; margin-top: 0.6rem; }
+
+/* BibTeX */
+.bibtex-box {
+  background: #1d2330; color: #e6e9ef; border-radius: 10px;
+  padding: 1.3rem 1.5rem; overflow-x: auto; font-size: 0.88rem; line-height: 1.5;
+}
+.bibtex-box pre { background: transparent; color: inherit; padding: 0; }
+
+/* Footer */
+.footer { background: #f7f9fc; padding: 2.4rem 1.5rem; }
+.footer a { color: #2b3a67; }
+
+@media screen and (max-width: 768px) {
+  .stat-card .num { font-size: 1.9rem; }
+  .author-block { font-size: 1.02rem; }
+  .affiliation { font-size: 0.92rem; }
+}
+
+/* Narrow phones: prevent overflow + tighten spacing so figures stay compact */
+@media screen and (max-width: 600px) {
+  .section { padding: 2.2rem 1.1rem; }
+  .tldr-card { padding: 1.3rem 1.2rem; }
+  /* formulas must wrap instead of forcing the page wider than the screen */
+  .fml { white-space: normal; word-break: break-word; }
+  .fml.big { font-size: 1rem; line-height: 1.5; padding: 0.25em 0.6em; }
+  .reward-line { gap: 0.55rem; }
+  .stage-block { padding-left: 0.9rem; }
+  .example-box { padding: 0.9rem 1rem; }
+  .ex-label { width: 78px; font-size: 0.74rem; }
+}

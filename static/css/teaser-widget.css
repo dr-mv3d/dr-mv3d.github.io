@@ -1,0 +1,113 @@
+/* ===== Teaser: sparse vs dense animated contrast ===== */
+.tw .tw-input {
+  display: flex; align-items: center; justify-content: center; gap: 0.8rem;
+}
+.tw .tw-input .mw-node { max-width: 420px; }
+.tw-views { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.tw-v { position: relative; border-radius: 6px; overflow: hidden; border: 1px solid #dfe5f0; }
+.tw-v img { width: 100%; height: auto; display: block; }
+.tw-v span {
+  position: absolute; top: 3px; left: 3px; background: rgba(28,36,54,0.78); color: #fff;
+  font-weight: 700; font-size: 0.62rem; border-radius: 4px; padding: 0.05em 0.4em;
+}
+.tw-v.sel { outline: 2.5px solid #2b3a67; outline-offset: -2px; }
+.tw-v.sel span { background: #2b3a67; }
+.tw-robot { width: 78px; height: auto; flex: none; }
+
+.tw-split {
+  text-align: center; color: #8a93a6; font-weight: 700; font-size: 0.85rem;
+  margin: 1rem 0 0.5rem; letter-spacing: 0.02em;
+}
+
+.tw-paths {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; align-items: stretch;
+}
+.tw-path {
+  border: 1.5px solid #e3e8f1; border-radius: 14px; padding: 1rem 1.1rem; background: #fff;
+  display: flex; flex-direction: column; gap: 0.7rem;
+}
+.tw-path.sparse { border-color: #f1c9c4; background: #fdf6f5; }
+.tw-path.dense { border-color: #bfe3cb; background: #f3faf5; }
+
+.tw-path-head { display: flex; align-items: center; gap: 0.6rem; font-weight: 800; font-size: 0.98rem; }
+.tw-path-head .sub { font-weight: 600; font-size: 0.78rem; color: #7c8597; }
+.tw-path-head.bad { color: #b23b30; }
+.tw-path-head.good { color: #157a45; }
+.tw-robot-sm { width: 42px; height: auto; flex: none; }
+
+.tw-cogwrap { background: #fff; border: 1px solid #e6ebf3; border-radius: 10px; padding: 0.4rem; }
+.tw-cogwrap svg { width: 100%; height: auto; display: block; }
+.tw-3dmap { width: 100%; height: auto; display: block; border-radius: 6px; }
+
+/* Labeled BEV cognitive map (same SVG style as the qualitative/method maps) */
+.tw-bevwrap { background: #fff; border: 1px solid #e6ebf3; border-radius: 10px; padding: 0.5rem 0.6rem 0.3rem; }
+.tw-bevhd { font-size: 0.72rem; font-weight: 700; color: #8a93a6; text-align: center; margin-bottom: 0.15rem; }
+.tw-bevgrid { max-width: 260px; margin: 0 auto; }
+.tw-bevgrid svg { width: 100%; height: auto; display: block; }
+
+/* Ego-centric map */
+.tw-egowrap { background: #fff; border: 1px solid #bfe3cb; border-radius: 10px; padding: 0.5rem 0.6rem; margin-top: 0.7rem; }
+.tw-egohd { font-size: 0.72rem; font-weight: 700; color: #157a45; text-align: center; margin-bottom: 0.3rem; }
+.tw-egostage { position: relative; max-width: 360px; margin: 0 auto; }
+.tw-egomap { width: 100%; height: auto; display: block; border-radius: 6px; }
+.ego-tag {
+  position: absolute; font-weight: 800; font-size: 0.72rem; border-radius: 7px; padding: 0.12em 0.5em;
+  background: rgba(255,255,255,0.92); border: 1.5px solid #6bbf59; color: #2f7a3f; white-space: nowrap;
+}
+.ego-tag.ego-left { left: 20%; top: 40%; color: #b87b16; border-color: #e0a83a; font-size: 0.85rem; }
+.ego-tag.ego-obj { left: 1%; top: 60%; }
+.tw-egonote { font-size: 0.8rem; line-height: 1.45; color: #2f5a43; text-align: center; margin-top: 0.35rem; }
+.tw-egonote b { color: #157a45; }
+
+/* Dense side: predicted map  ≈  VFM target */
+.tw-cogpair { display: flex; align-items: center; gap: 0.5rem; }
+.tw-cogitem { flex: 1 1 auto; min-width: 0; }
+.tw-cogitem.vfm { flex: 0 0 38%; }
+.tw-align { flex: none; text-align: center; color: #157a45; line-height: 1.1; }
+.tw-approx { display: block; font-size: 1.5rem; font-weight: 800; }
+.tw-aligntxt { font-size: 0.66rem; font-weight: 700; color: #2f7a52; }
+
+.tw-maplabel { font-weight: 800; font-size: 0.82rem; text-align: center; }
+.tw-maplabel.bad { color: #b23b30; }
+.tw-maplabel.good { color: #157a45; }
+.tw-maplabel.vfm { color: #1f4fb0; font-size: 0.76rem; }
+.tw-maplabel .sub { display: block; font-weight: 600; font-size: 0.68rem; color: #7c8597; }
+.tw-mapnote { font-size: 0.8rem; line-height: 1.45; color: #5a6478; text-align: center; }
+.tw-mapnote b { color: #2b3a67; }
+
+.tw-reason { font-size: 0.84rem; line-height: 1.5; color: #4a4a4a; }
+.tw-reason.bad { color: #8a4b44; }
+.tw-reason.good { color: #2f5a43; }
+.tw-reason .s { font-weight: 700; color: #157a45; }
+.tw-reason code, .qa code, .stage-block code {
+  background: #eef2f7; border-radius: 4px; padding: 0.05em 0.35em; font-size: 0.86em;
+}
+.tw-reason u, .qa u { text-decoration-color: #9aa7c4; }
+
+.tw-rewards { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+
+.tw-answer {
+  margin-top: auto; font-weight: 800; font-size: 1rem; border-radius: 8px; padding: 0.55rem 0.7rem; text-align: center;
+}
+.tw-answer.bad { background: #fbe4e1; color: #b23b30; }
+.tw-answer.good { background: #e3f5ea; color: #157a45; }
+
+@media screen and (max-width: 768px) {
+  .tw .tw-input { flex-direction: column; }
+  .tw-robot { width: 64px; }
+  .tw-paths { grid-template-columns: 1fr; }
+}
+
+/* Narrow phones: keep the stacked figure compact, cap map sizes so a single
+   column does not blow the maps up to full width and make the page endless. */
+@media screen and (max-width: 600px) {
+  .tw-paths { gap: 0.8rem; }
+  .tw-path { padding: 0.85rem 0.9rem; gap: 0.55rem; }
+  .tw .tw-input .mw-node { max-width: 340px; }
+  .tw-3dmap, .tw-cogwrap { max-width: 300px; margin-left: auto; margin-right: auto; }
+  .tw-egostage { max-width: 290px; }
+  .tw-bevgrid { max-width: 220px; }
+  .tw-reason { font-size: 0.8rem; }
+  .tw-answer { font-size: 0.92rem; padding: 0.5rem 0.6rem; }
+  .tw-approx { font-size: 1.25rem; }
+}
