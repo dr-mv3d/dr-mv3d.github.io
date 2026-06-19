@@ -178,6 +178,16 @@ body {
 .tldr-card ul ul li { margin-bottom: 0.3rem; line-height: 1.5; color: #3a4660; }
 .tldr-card ul ul li::marker { color: #9aa3b4; }
 
+/* Overview video */
+.video-wrap {
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 6px 26px rgba(20,30,60,0.14);
+  background: #0e1320;
+  line-height: 0;
+}
+.video-wrap video { width: 100%; height: auto; display: block; }
+
 /* Figures */
 img { max-width: 100%; height: auto; }
 .figure-img { border-radius: 8px; display: block; width: 100%; height: auto; }
